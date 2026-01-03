@@ -129,8 +129,37 @@ self.addEventListener("message", (event) => {
     }
 });
 
+// Message event - can only focus existing windows, cannot open new ones
 self.addEventListener("message", (event) => {
     if (event.data.action === "OPEN_WINDOW") {
-        focusOrOpenWindow(event.data.url);
+        console.log("📨 Received OPEN_WINDOW message:", event.data.url);
+
+        // Get all open windows
+        event.waitUntil(
+            self.clients.matchAll({
+                type: 'window',
+                includeUncontrolled: true
+            }).then(clientList => {
+                console.log("🔍 Found", clientList.length, "open windows");
+
+                // Try to focus an existing window
+                for (const client of clientList) {
+                    if (client.url.includes(self.location.origin) && 'focus' in client) {
+                        console.log("✅ Focusing existing window");
+                        client.focus();
+                        // Send navigation message to the window
+                        client.postMessage({
+                            type: 'NAVIGATE',
+                            url: event.data.url
+                        });
+                        return;
+                    }
+                }
+
+                // No window found - cannot open new window from message event
+                console.warn("⚠️ No existing window found. Message events cannot open new windows.");
+                console.warn("💡 User must open the app manually, or use a notification click.");
+            })
+        );
     }
 });

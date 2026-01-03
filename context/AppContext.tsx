@@ -108,6 +108,31 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         requestNotificationPermission().then(granted => {
             console.log("📱 Notification permission:", granted ? "✅ Granted" : "❌ Denied");
         });
+
+        // Listen for messages from service worker
+        const handleServiceWorkerMessage = (event: MessageEvent) => {
+            console.log("📬 Received message from service worker:", event.data);
+
+            if (event.data.type === 'NAVIGATE' && event.data.url) {
+                console.log("🧭 Navigating to:", event.data.url);
+                window.location.href = event.data.url;
+            }
+
+            if (event.data.type === 'NOTIFICATION_CLICKED' && event.data.url) {
+                console.log("🔔 Notification clicked, navigating to:", event.data.url);
+                window.location.href = event.data.url;
+            }
+        };
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+        }
+
+        return () => {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+            }
+        };
     }, []);
 
     useEffect(() => {

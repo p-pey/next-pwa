@@ -15,25 +15,27 @@ const DemoControls: React.FC = () => {
     const { triggerPilotAnnouncement, addNotification } = useApp();
 
     const handlePilotAnnouncement = () => {
-        const message =
-            pilotMessages[Math.floor(Math.random() * pilotMessages.length)];
-        triggerPilotAnnouncement(message);
-    };
+        setTimeout(() => {
 
-    const handleAddNotification = async () => {
-        console.log("🔘 Add Notification button clicked");
-        setTimeout(async () => {
-            console.log("⏰ Timeout fired, adding notification...");
-            addNotification();
-            await sendNotification("New Update", "You have a new notification!");
             if (navigator.serviceWorker.controller) {
+                console.log("###############")
                 navigator.serviceWorker.controller.postMessage({
                     action: "OPEN_WINDOW",
                     url: "/messages/123"
                 });
             }
+            const message =
+                pilotMessages[Math.floor(Math.random() * pilotMessages.length)];
+            triggerPilotAnnouncement(message);
+        }, 3000)
+    }
 
-        }, 5000);
+    const handleAddNotification = async () => {
+        console.log("🔘 Add Notification button clicked");
+        console.log("⏰ Timeout fired, adding notification...");
+        addNotification();
+        await sendNotification("New Update", "You have a new notification!");
+
     };
 
     return (
